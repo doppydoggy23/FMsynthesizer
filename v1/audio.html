@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- This code belongs to public domain (2023) -->
+<title>FM synthesizer</title>
+<style>
+
+#docfooter {
+  /*background-color: red;*/
+}
+
+</style>
+
+  <script src="wavefile.js"></script>
+	<script src="audio.js"></script>
+
+</head>
+<body onload="initializeUI()">
+
+  <h1>Online FM Synthesis Sound Generator</h1>
+
+  <div id="algopicdiv">
+    <img src="algorithm1.png" alt="Algorithm 1" style="width:10%;height:10%;">
+  </div>
+
+  <label for="SelectedAlgorithm">Choose an Algorithm:</label>
+  <select id="Algorithm" id="SelectedAlgorithm" onchange="AlgorithmListChange()" selected="Algorithm1">
+    <option value="Algorithm1">Algorithm 1</option>
+    <option value="Algorithm2">Algorithm 2</option>
+    <option value="Algorithm3">Algorithm 3</option>
+    <option value="Algorithm4">Algorithm 4</option>
+    <option value="Algorithm5">Algorithm 5</option>
+    <option value="Algorithm6">Algorithm 6</option>
+    <option value="Algorithm7">Algorithm 7</option>
+    <option value="Algorithm8">Algorithm 8</option>
+  </select>
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator4Table">
+    <tr>
+      <th>Modulator 4</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M4" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D4" value="1"></td>
+      <td>Range [0..1000]</td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator3Table">
+    <tr>
+      <th>Modulator 3</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M3" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D3" value="1"></td>
+      <td>Range [0..1000]</td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator2Table">
+    <tr>
+      <th>Modulator 2</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M2" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D2" value="1"></td>
+      <td>Range [0..1000]</td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Modulator 1</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M1" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D1" value="1"></td>
+      <td>Range [0..1000]</td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Carrier3Table">
+    <tr>
+      <th>Carrier 3</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A3" step="0.1"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C3" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+  </table>
+
+  <p></p>
+
+  <table style="display: none;" id="Carrier2Table">
+    <tr>
+      <th>Carrier 2</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A2" step="0.1"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C2" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+  </table>
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Carrier 1</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A1" step="0.1"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C1" value="100"></td>
+      <td>Range [0..5000]</td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Waveform</th>
+    </tr>
+    <tr>
+      <td>Attack duration (s)</td>
+      <td><input type="range" min="0" max="1" value="0.1" class="slider" id="AttackSlider" step="0.1"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>Sustain duration (s)</td>
+      <td><input type="range" min="0" max="3" value="1" class="slider" id="SustainSlider" step="0.1"></td>
+      <td>Range [0..3]</td>
+    </tr>
+    <tr>
+      <td>Release duration (s)</td>
+      <td><input type="range" min="0" max="1" value="0.1" class="slider" id="ReleaseSlider" step="0.1"></td>
+      <td>Range [0..1]</td> <!-- decay is missing -->
+    </tr>
+  </table>
+
+
+<input type="button" id="PlayButton"onclick="playSound()" value="Play Sound">
+<input type="button" id="DownloadWavButton"onclick="downloadWAV()" value="Download Wav">
+
+<footer id="docfooter">
+
+</footer>
+
+</body>
+</html>

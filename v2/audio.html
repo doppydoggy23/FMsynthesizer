@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- This code belongs to public domain (2023) -->
+<title>FM synthesizer</title>
+<style>
+
+#docfooter {
+  /*background-color: red;*/
+}
+
+
+</style>
+
+  <script src="wavefile.js"></script>
+	<script src="audio.js"></script>
+
+</head>
+<body onload="initializeUI()">
+
+  <h1>Online FM Synthesis Sound Generator</h1>
+
+  <div id="algopicdiv">
+    <img src="algorithm1.png" alt="Algorithm 1" style="width:10%;height:10%;">
+  </div>
+
+  <label for="SelectedAlgorithm">Choose an Algorithm:</label>
+  <select id="Algorithm" id="SelectedAlgorithm" onchange="AlgorithmListChange()" selected="Algorithm1">
+    <option value="Algorithm1">Algorithm 1</option>
+    <option value="Algorithm2">Algorithm 2</option>
+    <option value="Algorithm3">Algorithm 3</option>
+    <option value="Algorithm4">Algorithm 4</option>
+    <option value="Algorithm5">Algorithm 5</option>
+    <option value="Algorithm6">Algorithm 6</option>
+    <option value="Algorithm7">Algorithm 7</option>
+    <option value="Algorithm8">Algorithm 8</option>
+  </select>
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator4Table">
+    <tr>
+      <th>Modulator 4</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M4" value="100" onchange="M4TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="M4FrequencySlider" step="1" style="width:600px;" oninput="M4FrequencySliderOnInput()"></td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D4" value="1" onchange="D4TextOnChange()"></td>
+      <td>Range [0..1000]</td>
+      <td><input type="range" min="0" max="100" value="1" class="slider" id="D4Slider" step="0.1" style="width:256px;" oninput="D4SliderOnInput()"></td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator3Table">
+    <tr>
+      <th>Modulator 3</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M3" value="100" onchange="M3TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="M3FrequencySlider" step="1" style="width:600px;" oninput="M3FrequencySliderOnInput()"></td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D3" value="1" onchange="D3TextOnChange()"></td>
+      <td>Range [0..1000]</td>
+      <td><input type="range" min="0" max="100" value="1" class="slider" id="D3Slider" step="0.1" style="width:256px;" oninput="D3SliderOnInput()"></td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Modulator2Table">
+    <tr>
+      <th>Modulator 2</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M2" value="100" onchange="M2TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="M2FrequencySlider" step="1" style="width:600px;" oninput="M2FrequencySliderOnInput()"></td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D2" value="1" onchange="D2TextOnChange()"></td>
+      <td>Range [0..1000]</td>
+      <td><input type="range" min="0" max="100" value="1" class="slider" id="D2Slider" step="0.1" style="width:256px;" oninput="D2SliderOnInput()"></td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Modulator 1</th>
+    </tr>
+    <tr>
+      <td>M (Modulator Frequency)</td>
+      <td><input type="text" id="M1" value="100" onchange="M1TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="M1FrequencySlider" step="1" style="width:600px;" oninput="M1FrequencySliderOnInput()"></td>
+    </tr>
+    <tr>
+      <td>D (Modulation Strength)</td>
+      <td><input type="text" id="D1" value="1" onchange="D1TextOnChange()"></td>
+      <td>Range [0..1000]</td>
+      <td><input type="range" min="0" max="100" value="1" class="slider" id="D1Slider" step="0.1" style="width:256px;" oninput="D1SliderOnInput()"></td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table style="display: none;" id="Carrier3Table">
+    <tr>
+      <th>Carrier 3</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A3" step="0.1" oninput="A3SliderOnInput()"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C3" value="100" onchange="C3TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="C3FrequencySlider" step="1" style="width:600px;" oninput="C3FrequencySliderOnInput()"></td>
+    </tr>
+  </table>
+
+  <p></p>
+
+  <table style="display: none;" id="Carrier2Table">
+    <tr>
+      <th>Carrier 2</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A2" step="0.1" oninput="A2SliderOnInput()"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C2" value="100" onchange="C2TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="C2FrequencySlider" step="1" style="width:600px;" oninput="C2FrequencySliderOnInput()"></td>
+    </tr>
+  </table>
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Carrier 1</th>
+    </tr>
+    <tr>
+      <td>A (Wave Amplitude)</td>
+      <td><input type="range" min="0" max="1" value="1" class="slider" id="A1" step="0.1" oninput="A1SliderOnInput()"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>C (Carrier Frequency)</td>
+      <td><input type="text" id="C1" value="100" onchange="C1TextOnChange()"></td>
+      <td>Range [0..5000]</td>
+      <td><input type="range" min="0" max="440" value="100" class="slider" id="C1FrequencySlider" step="1" style="width:600px;" oninput="C1FrequencySliderOnInput()"></td>
+    </tr>
+  </table> 
+
+  <p></p>
+
+  <table>
+    <tr>
+      <th>Waveform</th>
+    </tr>
+    <tr>
+      <td>Attack duration (s)</td>
+      <td><input type="range" min="0" max="1" value="0.1" class="slider" id="AttackSlider" step="0.01"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>Decay duration (s)</td>
+      <td><input type="range" min="0" max="1" value="0.1" class="slider" id="DecaySlider" step="0.01"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>Sustain duration (s)</td>
+      <td><input type="range" min="0" max="3" value="1" class="slider" id="SustainSlider" step="0.01"></td>
+      <td>Range [0..3]</td>
+    </tr>
+    <tr>
+      <td>Sustain Volume (%)</td>
+      <td><input type="range" min="0" max="1" value="0.7" class="slider" id="SustainVolumeSlider" step="0.1"></td>
+      <td>Range [0..1]</td>
+    </tr>
+    <tr>
+      <td>Release duration (s)</td>
+      <td><input type="range" min="0" max="1" value="0.1" class="slider" id="ReleaseSlider" step="0.01"></td>
+      <td>Range [0..1]</td> <!-- decay is missing -->
+    </tr>
+  </table>
+
+
+<input type="button" id="PlayButton"onclick="playSound()" value="Play Sound">
+<input type="button" id="DownloadWavButton"onclick="downloadWAV()" value="Download Wav">
+<input type="button" id="TestSoundButton"onclick="testSoundClick()" value="Test Sound">
+<input type="button" id="StopTestButton"onclick="stopTestClick()" value="Stop Test">
+
+<!-- Here it goes the description and information-->
+
+<h2>Information</h2>
+<p>
+  This is an FM synthesizer made in HTML and Javascript I made as a hobbie. If you don't know what that is you can find plenty of information on Internet, but sumarizing it, it's a way of making
+  sounds using the amplitude of one sine wave (modulator) to modify the frequency of another sine wave (carrier).
+</p>
+<p> 
+  You can view and download the files at <a href="https://github.com/doppydoggy23/FMsynthesizer"> my Github </a>. The source code belongs to public domain. It's intended to be as small and simple as
+  possible so that someone with little programming knowledge can understant and modify it.
+</p>
+
+<h2>Algorithm explanation</h2>
+<p>
+  Modulators (Ms) are to the left. They modulate Carriers (Cs) to the right. One modulator can modulate another modulator or even itself.
+</p>
+<img src="algorithm2.png" alt="algorithm 2">
+<p>
+ For example, the image above means that modulator M2, modulates modulator M1, and M1 modulates Carrier C1.
+</p>
+
+<h2>How to get harmomic sounds</h2>
+<p>
+  Usually, to get ear-pleasant sounds the frequencies of modulators and carriers must be an exact fraction (1/2, 3/2, 2, 3, etc) of each other. You can read more <a href="fm_synthesis.pdf"> HERE </a>. 
+</p>
+
+<h2>How do I use this thing</h2>
+  <h3>Buttons</h3>
+    <p><b>Test Sound:</b> This button is used to play the current sound in a loop. You can then use the sliders and text boxes to adjust the parameters at your will.</p>
+    <p><b>Stop Test:</b> Stops the sound test.</p>
+    <p><b>Play Sound:</b> This button is used to play the current sound once, with the wave shape applied. </p>
+    <p><b>Download WAV:</b> Downloads a WAV file with the sound. Wave shape is applied.</p>
+
+    <p>Usually you would play with Test Sound and the sliders, fine tune it with the values of frequencies in the text boxes. Play the sound, and download it.</p>
+  <h3>Wave Shape</h3>
+    <img src="ws.png" alt="wave shape visualization"> 
+    <p><b>Attack:</b> Duration of transition from volume 0 to volume 1.</p>
+    <p><b>Decay:</b> Duration of transition from volume 1 to Sustain Volume.</p>
+    <p><b>Sustain:</b> Duration of volume set to Sustain Volume</p>
+    <p><b>Sustain Volume:</b> Value from 0 (min) to 1 (max). It's the volume ratio sustained during all the Sustain period.</p>
+    <p><b>Release:</b> Duration of transition from Sustain Volume to 0.</p>
+
+<footer id="docfooter">
+
+</footer>
+
+</body>
+</html>
