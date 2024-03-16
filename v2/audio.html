@@ -211,6 +211,7 @@
 <input type="button" id="DownloadWavButton"onclick="downloadWAV()" value="Download Wav">
 <input type="button" id="TestSoundButton"onclick="testSoundClick()" value="Test Sound">
 <input type="button" id="StopTestButton"onclick="stopTestClick()" value="Stop Test">
+<input type="button" id="CheckWebMidi"onclick="CheckWebMidiClick()" value="Check Web MIDI">
 
 <!-- Here it goes the description and information-->
 
@@ -244,8 +245,9 @@
     <p><b>Stop Test:</b> Stops the sound test.</p>
     <p><b>Play Sound:</b> This button is used to play the current sound once, with the wave shape applied. </p>
     <p><b>Download WAV:</b> Downloads a WAV file with the sound. Wave shape is applied.</p>
+    <p><b>Check Web MIDI:</b> Loads the MIDI sound processor and starts the MIDI devices. Clicking here should allow you to use your MIDI keyboard.</p>
 
-    <p>Usually you would play with Test Sound and the sliders, fine tune it with the values of frequencies in the text boxes. Play the sound, and download it.</p>
+    <p>Usually you would play with Test Sound and the sliders, fine tune it with the values of frequencies in the text boxes. Play the sound with the computer or midi keyboard, and download it.</p>
   <h3>Wave Shape</h3>
     <img src="ws.png" alt="wave shape visualization"> 
     <p><b>Attack:</b> Duration of transition from volume 0 to volume 1.</p>
@@ -253,6 +255,15 @@
     <p><b>Sustain:</b> Duration of volume set to Sustain Volume</p>
     <p><b>Sustain Volume:</b> Value from 0 (min) to 1 (max). It's the volume ratio sustained during all the Sustain period.</p>
     <p><b>Release:</b> Duration of transition from Sustain Volume to 0.</p>
+
+<h2>Known Bugs</h2>
+  <h3>Cracks in sounds when playing midi keyboard in Chrome</h3>
+  <p>
+    Due to the way audio samples are mixed, that is, simply adding them arithmetically, when two or more midi keys are pressed in Chrome a cracking sound might appear. Currently you have two alternatives:
+    <p>1. Using Firefox. In FF this issue is fixed.</p>
+    <p>2. Lowering the amplitude (A) of Carriers. This way the sound is less powerful, but the cracking dissapears.</p>
+  </p>
+  
 
 <footer id="docfooter">
 

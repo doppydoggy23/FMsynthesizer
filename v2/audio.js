@@ -8,6 +8,22 @@ function initializeUI() {
 
     window.myAudioContext=null;
     window.signalProcessor=null;
+    window.isSoundTestRunning=false;
+
+    document.addEventListener("keydown", (event) => {
+        if (event.repeat) // avoid repeated keystrokes
+            return;
+        keyPressed(event.keyCode);
+        // do something
+      });
+    document.addEventListener("keyup", (event) => {
+        if (event.repeat)
+            return;
+        keyReleased(event.keyCode);
+        // do something
+      });
+
+    
 }
 
 // called when download wav button is pressed
@@ -105,6 +121,7 @@ function playSound() {
 }
 
 // applies the wave shape functions (volume levels) returns [0..1]
+// if you change this function, you must modify the equivalent function in micro-sound-processor.js
 function getWaveScaleFor (formulaValues, t) {
 
     if( (formulaValues.Attack>0)&& ((t>=0)&&(t<=formulaValues.Attack)) ) {
@@ -550,6 +567,7 @@ class AudioProcessorMessage {
     M4=null; 
     D4=null;
 
+
     constructor(formulaValues, extirreq, smplerate) { 
         
         if (formulaValues!=null) {
@@ -574,7 +592,7 @@ class AudioProcessorMessage {
             //M4
             this.M4=formulaValues.M4; 
             this.D4=formulaValues.D4;
-
+            //
             this.Algorithm=formulaValues.Algorithm;
         }
         
@@ -585,6 +603,10 @@ class AudioProcessorMessage {
 
 // Stop button called
 function stopTestClick() {
+
+    if (window.isSoundTestRunning==false)
+        return;
+
     if ((window.myAudioContext!=null)&&(window.signalProcessor!=null)) {
 
         let myAudioProcessorMessage =new AudioProcessorMessage(null, true, -1);
@@ -593,8 +615,12 @@ function stopTestClick() {
 
         window.signalProcessor.port.postMessage(myAudioProcessorMessage);
 
+        window.myAudioContext.close();
         window.signalProcessor=null;
         window.myAudioContext=null;
+        window.isSoundTestRunning=false;
+
+        CheckWebMidiClick(); // we re-install midi sound processor
     }
 }
 
@@ -613,7 +639,7 @@ async function testSoundClick() {
 
 
     if (window.myAudioContext!=null){
-        return ; // there is already a test going on
+        window.myAudioContext.close();
     }
 
     // create the audio worklet and configure it via a message
@@ -635,6 +661,7 @@ async function testSoundClick() {
     //global variables
     window.signalProcessor=testSPNode;
     window.myAudioContext=audioContext; //global var
+    window.isSoundTestRunning=true;
 
 }
 
@@ -791,6 +818,10 @@ function D4TextOnChange() {
 This function sends the form data to the signal processor
 */
 function collectFormDataAndUpdateSignalProcessorValues(){
+    
+    if (window.isSoundTestRunning==false)
+        return;
+
     if ((window.signalProcessor!=null)&&(window.myAudioContext!=null))
     {   
         let formulaValues=checkForValidValues();
@@ -800,4 +831,255 @@ function collectFormDataAndUpdateSignalProcessorValues(){
         //
         window.signalProcessor.port.postMessage(myAudioProcessorMessage);
     }
+}
+
+// constains the info sent via message to an audio signal processor
+class MIDIAudioProcessorMessage {  
+    //audioTestStopRequested= false; // request audio signal processing to stop
+    //audioCtxSampleRate= -1;
+    messageType="";
+    key=-1;
+
+    Algorithm=null;
+    //M1
+    M1=null; 
+    D1=null;
+    //C1
+    A1=null;
+    C1=null;
+    //M2
+    M2=null; 
+    D2=null;
+    //C2
+    C2=null;
+    A2=null;
+    //M3
+    M3=null; 
+    D3=null;
+    //C3
+    C3=null;
+    A3=null;
+    //M4
+    M4=null; 
+    D4=null;
+    //
+    Attack=null;
+    Decay=null;
+    Sustain=null;
+    SustainVolume=null;
+    Release=null;
+
+
+    timeShiftingRatio=-1;
+
+    constructor(messageTypep, keyp, formulaValues, timeShiftingRatiop) { 
+        
+        this.messageType=messageTypep;
+        this.key=keyp;    
+
+        this.timeShiftingRatio=timeShiftingRatiop;
+
+        if (formulaValues!=null) {
+            //M1
+            this.M1=formulaValues.M1; 
+            this.D1=formulaValues.D1;
+            //C1
+            this.A1=formulaValues.A1;
+            this.C1=formulaValues.C1;
+            //M2
+            this.M2=formulaValues.M2; 
+            this.D2=formulaValues.D2;
+            //C2
+            this.C2=formulaValues.C2;
+            this.A2=formulaValues.A2;
+            //M3
+            this.M3=formulaValues.M3; 
+            this.D3=formulaValues.D3;
+            //C3
+            this.C3=formulaValues.C3;
+            this.A3=formulaValues.A3;
+            //M4
+            this.M4=formulaValues.M4; 
+            this.D4=formulaValues.D4;
+            //
+            this.Attack=formulaValues.Attack;
+            this.Decay=formulaValues.Decay;
+            this.Sustain=formulaValues.Sustain;
+            this.SustainVolume=formulaValues.SustainVolume;
+            this.Release=formulaValues.Release;
+            //
+            this.Algorithm=formulaValues.Algorithm;
+        }
+    }  
+}
+
+// we can have multiple  keypressed events for the same key (repetition)
+/* This function triggers when a keyboard key is pressed, via computer keyboard or midi device
+*/
+async function keyPressed(keyCode) {
+    //console.log("keyPressed :"+keyCode)
+
+    if (window.isSoundTestRunning)
+        return;
+
+    if ((window.myAudioContext==null)||(window.signalProcessor==null))
+        return;
+
+    //
+    let formulaValues=checkForValidValues();
+
+    let myTimeShiftingRatio=1;
+    let minC1=Math.max(formulaValues.C1, 1); // we use carrier 1 as referent to know the frequency the sample is at
+
+    // determine the necessary audio buffer estretching to play the correct note frequency
+    if (keyCode==65) { // A
+        myTimeShiftingRatio=440/minC1;
+    }
+    if (keyCode==83) { // S
+        myTimeShiftingRatio=466/minC1;
+    }
+    if (keyCode==68) { // D
+        myTimeShiftingRatio=493/minC1;
+    }
+    if (keyCode==70) { // F
+        myTimeShiftingRatio=525/minC1;
+    }
+    if (keyCode==71) { // G
+        myTimeShiftingRatio=554/minC1;
+    }
+    if (keyCode==72) { // H
+        myTimeShiftingRatio=587/minC1;
+    }
+
+    if (keyCode>1000){ // received from MIDI dev
+        myTimeShiftingRatio=midiNoteToFrequency(keyCode-1000)/minC1; // convert the key received from midi device into frequency
+    }
+
+    let myAudioProcessorMessage =new MIDIAudioProcessorMessage("noteOn", keyCode, formulaValues, myTimeShiftingRatio);
+    window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+}
+
+async function keyReleased(keyCode) {
+    //console.log("keyReleased :"+keyCode)    
+
+    if (window.isSoundTestRunning)
+        return;
+
+    if ((window.myAudioContext==null)||(window.signalProcessor==null))
+        return;
+
+    //
+    let myAudioProcessorMessage =new MIDIAudioProcessorMessage("noteOff", keyCode, null, 0);
+    window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+}
+
+async function CheckWebMidiClick() {
+
+    if (window.isSoundTestRunning)
+        return;
+
+    if (window.myAudioContext!=null) {
+        window.myAudioContext.close();
+    }
+
+    //console.log(""+window.signalProcessor.constructor.name);
+
+    // create the audio worklet and configure it via a message
+    const audioContext = new AudioContext();
+    await audioContext.audioWorklet.addModule("midi-sound-processor.js");
+        //
+    let midiSPNode = new AudioWorkletNode(
+        audioContext,
+        "midi-sound-processor",
+    );
+    //
+    midiSPNode.port.onmessage = (e) => console.log("Main app: Received from sound procesor: "+e.data);
+    midiSPNode.connect(audioContext.destination);
+    
+    //global variables
+    window.signalProcessor=midiSPNode;
+    window.myAudioContext=audioContext; //global var
+
+    // send configuration message
+    window.signalProcessor.port.postMessage( {messageType:"config", audioTestStopRequested:false, audioCtxSampleRate: audioContext.sampleRate});
+
+    await navigator.requestMIDIAccess()
+    .then(
+      (midi) => midiReady(midi),
+      (err) => console.log('MIDI: Something went wrong', err));
+}
+
+function midiReady(midi) {
+    // Also react to device changes.
+    midi.addEventListener('statechange', (event) => MIDIinitDevices(event.target));
+    MIDIinitDevices(midi); // see the next section!
+  }
+
+  function MIDIinitDevices(midi) {
+    // Reset.
+    let midiIn = [];
+    let midiOut = [];
+    
+    // MIDI devices that send you data.
+    const inputs = midi.inputs.values();
+    for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+      midiIn.push(input.value);
+    }
+    
+    // MIDI devices that you send data to.
+    const outputs = midi.outputs.values();
+    for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
+      midiOut.push(output.value);
+    }
+    
+    //displayDevices();
+    MIDIstartListening(midiIn);
+  }
+  
+  
+  // Start listening to MIDI messages.
+  function MIDIstartListening(midiIn) {
+    for (const input of midiIn) {
+      input.addEventListener('midimessage', midiMessageReceived);
+    }
+  }
+
+  function midiMessageReceived(event) {
+    // MIDI commands we care about. See
+    // http://webaudio.github.io/web-midi-api/#a-simple-monophonic-sine-wave-midi-synthesizer.
+    const NOTE_ON = 9;
+    const NOTE_OFF = 8;
+  
+    const cmd = event.data[0] >> 4;
+    const pitch = event.data[1];
+    const velocity = (event.data.length > 2) ? event.data[2] : 1;
+    
+    // You can use the timestamp to figure out the duration of each note.
+    //const timestamp = Date.now();
+    
+    // Note that not all MIDI controllers send a separate NOTE_OFF command for every NOTE_ON.
+    if (cmd === NOTE_OFF || (cmd === NOTE_ON && velocity === 0)) {
+      //console.log(`from ${event.srcElement.name} note off: pitch:${pitch}, velocity: ${velocity}`);
+      /////console.log ("Noteoff: NoteId="+pitch);
+      keyReleased(1000+pitch);
+    
+/*      // Complete the note!
+      const note = notesOn.get(pitch);
+      if (note) {
+        console.log(`🎵 pitch:${pitch}, duration:${timestamp - note} ms.`);
+        //notesOn.delete(pitch);
+      }*/
+
+    } else if (cmd === NOTE_ON) {
+      //console.log(`from ${event.srcElement.name} note on: pitch:${pitch}, velocity: {velocity}`);
+      ///////////////console.log ("NoteOn: NoteID= "+pitch+"freq="+midiNoteToFrequency(event.data[1]));
+      keyPressed(1000+pitch);
+      
+      // One note can only be on at once.
+      //notesOn.set(pitch, timestamp);
+    }
+  }
+
+function midiNoteToFrequency (note) {
+    return Math.pow(2, ((note - 69) / 12)) * 440;
 }
