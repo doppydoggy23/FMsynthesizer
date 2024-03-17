@@ -147,7 +147,12 @@ class TestSoundProcessor extends AudioWorkletProcessor {
           //
           //
           let t=((i+this.samplesProcessed)/this.audioCtxSampleRate);    // this is why we need the count of samples processed, to get time t
-          channel[i] = this.getFMAmplitudeFor(t); // simply write the amplitude values to output buffer
+
+          let minC1=Math.max(this.C1, 1);
+          let shiftingRatio=(440/minC1); // adjust the timing to always play a note A  
+
+          channel[i] = this.getFMAmplitudeFor(t*shiftingRatio); // simply write the amplitude values to output buffer
+          //channel[i]=1;
           //
           //
         }
@@ -155,7 +160,7 @@ class TestSoundProcessor extends AudioWorkletProcessor {
       this.samplesProcessed+=output[0].length; // wee need the count of samples processed to obtain time t
 
       if (this.audioTestStopRequested==true) {
-            console.log("AudioWorkletProcessor: exit requested");
+            //console.log("AudioWorkletProcessor: exit requested");
             return false;
       }
 

@@ -49,8 +49,13 @@ function downloadWAV() {
 
     let myInt16Array = new Int16Array(44100*totalSampleTime);
     for (let i=0; i<myInt16Array.length; i++) {
-        let smpl=getFMAmplitudeFor(formulaValues, i/44100); // gets the amplitude [0..1] for the given time i
-        smpl*=getWaveScaleFor(formulaValues, i/44100); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times //ToDo: check this
+
+        let t=i/44100;
+        let minC1=Math.max(formulaValues.C1, 1);
+        let shiftingRatio=(440/minC1); // adjust the timing to always play a note A
+
+        let smpl=getFMAmplitudeFor(formulaValues, t*shiftingRatio); // gets the amplitude [0..1] for the given time i
+        smpl*=getWaveScaleFor(formulaValues, t); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times //ToDo: check this
         smpl=Math.floor(smpl*32766); // convert it to 16 bit signed integers
         myInt16Array[i]=smpl;
     }
@@ -99,8 +104,11 @@ function playSound() {
         // This gives us the actual array that contains the data
         const nowBuffering = myArrayBuffer.getChannelData(channel);
         for (let i = 0; i < myArrayBuffer.length; i++) {
-            nowBuffering[i]=getFMAmplitudeFor(formulaValues, i/audioCtx.sampleRate); // gets the amplitude [0..1] for the given time i
-            nowBuffering[i]*=getWaveScaleFor(formulaValues, i/audioCtx.sampleRate); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times
+            let t=i/audioCtx.sampleRate;
+            let minC1=Math.max(formulaValues.C1, 1);
+            let shiftingRatio=(440/minC1); // adjust the timing to always play a note A
+            nowBuffering[i]=getFMAmplitudeFor(formulaValues, t*shiftingRatio); // gets the amplitude [0..1] for the given time t
+            nowBuffering[i]*=getWaveScaleFor(formulaValues, t); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times
         }
     }
 
@@ -145,12 +153,11 @@ function getWaveScaleFor (formulaValues, t) {
 }
 
 /*
-this is the function you have to modify to add new algorithms. Unfortunately you also have to modify the matching function in the test-sound-processor.js. That's how JS works :(
+this is the function you have to modify to add new algorithms. Unfortunately you also have to modify the matching function in the test-sound-processor.js. and midi-sound-processor.js. That's how JS works :(
 */
 function getFMAmplitudeFor (formulaValues, t) {
     if (formulaValues.Algorithm=="Algorithm1")  {
         // Modulator M1 modulates C1
-        //let t=(i/sampleRate)%1; // t E [0..1]
         return formulaValues.A1*Math.sin( (2*Math.PI*formulaValues.C1*t) + (formulaValues.D1*Math.sin(2*Math.PI*formulaValues.M1*t)) );
         }
 
@@ -609,12 +616,13 @@ function stopTestClick() {
 
     if ((window.myAudioContext!=null)&&(window.signalProcessor!=null)) {
 
-        let myAudioProcessorMessage =new AudioProcessorMessage(null, true, -1);
+        let myAudioProcessorMessage =new AudioProcessorMessage(null, true, -1); // create a stop message
         //myAudioProcessorMessage.audioTestStopRequested= true; // request audio signal processing to stop
         //myAudioProcessorMessage.audioCtxSampleRate= -1;
 
-        window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+        window.signalProcessor.port.postMessage(myAudioProcessorMessage); //send the stop message
 
+        //clean
         window.myAudioContext.close();
         window.signalProcessor=null;
         window.myAudioContext=null;
@@ -826,10 +834,10 @@ function collectFormDataAndUpdateSignalProcessorValues(){
     {   
         let formulaValues=checkForValidValues();
 
-        let myAudioProcessorMessage =new AudioProcessorMessage(formulaValues, false, window.myAudioContext.sampleRate);
+        let myAudioProcessorMessage =new AudioProcessorMessage(formulaValues, false, window.myAudioContext.sampleRate); 
         
         //
-        window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+        window.signalProcessor.port.postMessage(myAudioProcessorMessage);// send the new form values to audio processor
     }
 }
 
@@ -930,33 +938,58 @@ async function keyPressed(keyCode) {
 
     let myTimeShiftingRatio=1;
     let minC1=Math.max(formulaValues.C1, 1); // we use carrier 1 as referent to know the frequency the sample is at
+    let mustIPlayThisKey=false;
 
-    // determine the necessary audio buffer estretching to play the correct note frequency
-    if (keyCode==65) { // A
-        myTimeShiftingRatio=440/minC1;
-    }
-    if (keyCode==83) { // S
-        myTimeShiftingRatio=466/minC1;
-    }
-    if (keyCode==68) { // D
-        myTimeShiftingRatio=493/minC1;
-    }
-    if (keyCode==70) { // F
-        myTimeShiftingRatio=525/minC1;
-    }
-    if (keyCode==71) { // G
-        myTimeShiftingRatio=554/minC1;
-    }
-    if (keyCode==72) { // H
-        myTimeShiftingRatio=587/minC1;
+    // stretch the time T to play the correct note
+    switch (keyCode) {
+        case 65: //A
+            myTimeShiftingRatio=349/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 83: //S
+            myTimeShiftingRatio=369/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 68: //D
+            myTimeShiftingRatio=392/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 70: //F
+            myTimeShiftingRatio=415/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 71: //G
+            myTimeShiftingRatio=440/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 72: //H
+            myTimeShiftingRatio=466/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 74: //J
+            myTimeShiftingRatio=493/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 75: //K
+            myTimeShiftingRatio=525/minC1;
+            mustIPlayThisKey=true;
+            break;
+        case 76: //L
+            myTimeShiftingRatio=554/minC1;
+            mustIPlayThisKey=true;
+            break;
+
     }
 
     if (keyCode>1000){ // received from MIDI dev
         myTimeShiftingRatio=midiNoteToFrequency(keyCode-1000)/minC1; // convert the key received from midi device into frequency
+        mustIPlayThisKey=true;
     }
 
-    let myAudioProcessorMessage =new MIDIAudioProcessorMessage("noteOn", keyCode, formulaValues, myTimeShiftingRatio);
-    window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+    if (mustIPlayThisKey) {
+        let myAudioProcessorMessage =new MIDIAudioProcessorMessage("noteOn", keyCode, formulaValues, myTimeShiftingRatio);
+        window.signalProcessor.port.postMessage(myAudioProcessorMessage);
+    }
 }
 
 async function keyReleased(keyCode) {
@@ -973,6 +1006,9 @@ async function keyReleased(keyCode) {
     window.signalProcessor.port.postMessage(myAudioProcessorMessage);
 }
 
+/*
+Checks if webmidi is available and configures it, but first, installs the midi sound processor.
+*/
 async function CheckWebMidiClick() {
 
     if (window.isSoundTestRunning)

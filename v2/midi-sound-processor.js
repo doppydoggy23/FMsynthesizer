@@ -8,15 +8,7 @@ class MIDISoundProcessor extends AudioWorkletProcessor {
 
   noteOnEventReceived(e) {
 
-    /*
-    // check if the note sent is duplicated
-    for (let i=0; i<this.notesCurrentlyPlaying.length; i++) {
-      if (this.notesCurrentlyPlaying[i].key==e.data.key)
-        return; // we don't do anything more. We discard the data.
-    }*/
-
     //console.log("AudioWorkletProcessor: noteOn="+e.data.key); 
-
 
     let noteInfo = {
       key: e.data.key,
@@ -65,11 +57,15 @@ class MIDISoundProcessor extends AudioWorkletProcessor {
     */
 
     //remove note from array of notes currently playing
-    let elementPos;
+    let elementPos=-1;
     for (let i=0; i<this.notesCurrentlyPlaying.length; i++) {
       if (this.notesCurrentlyPlaying[i].key==e.data.key)
         elementPos=i;
     }
+
+    if (elementPos==-1)
+      return; // received a NoteOff event for a key that wasn't playing before, like a function key or similar
+
     //this.notesCurrentlyPlaying.splice(elementPos, 1);
     let noteInfoS=this.notesCurrentlyPlaying[elementPos];
     noteInfoS.key+=2000; // mark the note as Off
@@ -86,7 +82,6 @@ class MIDISoundProcessor extends AudioWorkletProcessor {
   getFMAmplitudeFor (formulaValues, t) {
     if (formulaValues.Algorithm=="Algorithm1")  {
         // Modulator M1 modulates C1
-        //let t=(i/sampleRate)%1; // t E [0..1]
         return formulaValues.A1*Math.sin( (2*Math.PI*formulaValues.C1*t) + (formulaValues.D1*Math.sin(2*Math.PI*formulaValues.M1*t)) );
         }
 
@@ -258,6 +253,6 @@ class MIDISoundProcessor extends AudioWorkletProcessor {
     }
   }
   
-  //do the reg ppppppppp
+  //do the reg pp
   registerProcessor("midi-sound-processor", MIDISoundProcessor);
   
