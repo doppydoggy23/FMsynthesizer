@@ -148,10 +148,10 @@ class TestSoundProcessor extends AudioWorkletProcessor {
           //
           let t=((i+this.samplesProcessed)/this.audioCtxSampleRate);    // this is why we need the count of samples processed, to get time t
 
-          let minC1=Math.max(this.C1, 1);
-          let shiftingRatio=(440/minC1); // adjust the timing to always play a note A  
+          //let minC1=Math.max(this.C1, 1);
+          //let shiftingRatio=(440/minC1); // adjust the timing to always play a note A  
 
-          channel[i] = this.getFMAmplitudeFor(t*shiftingRatio); // simply write the amplitude values to output buffer
+          channel[i] = this.getFMAmplitudeFor(t); // simply write the amplitude values to output buffer
           //channel[i]=1;
           //
           //

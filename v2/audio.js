@@ -51,10 +51,8 @@ function downloadWAV() {
     for (let i=0; i<myInt16Array.length; i++) {
 
         let t=i/44100;
-        let minC1=Math.max(formulaValues.C1, 1);
-        let shiftingRatio=(440/minC1); // adjust the timing to always play a note A
 
-        let smpl=getFMAmplitudeFor(formulaValues, t*shiftingRatio); // gets the amplitude [0..1] for the given time i
+        let smpl=getFMAmplitudeFor(formulaValues, t); // gets the amplitude [0..1] for the given time i
         smpl*=getWaveScaleFor(formulaValues, t); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times //ToDo: check this
         smpl=Math.floor(smpl*32766); // convert it to 16 bit signed integers
         myInt16Array[i]=smpl;
@@ -105,9 +103,9 @@ function playSound() {
         const nowBuffering = myArrayBuffer.getChannelData(channel);
         for (let i = 0; i < myArrayBuffer.length; i++) {
             let t=i/audioCtx.sampleRate;
-            let minC1=Math.max(formulaValues.C1, 1);
-            let shiftingRatio=(440/minC1); // adjust the timing to always play a note A
-            nowBuffering[i]=getFMAmplitudeFor(formulaValues, t*shiftingRatio); // gets the amplitude [0..1] for the given time t
+            //let minC1=Math.max(formulaValues.C1, 1);
+            //let shiftingRatio=(440/minC1); // adjust the timing to always play a note A
+            nowBuffering[i]=getFMAmplitudeFor(formulaValues, t); // gets the amplitude [0..1] for the given time t
             nowBuffering[i]*=getWaveScaleFor(formulaValues, t); // multiplies it for a scale to give the wave the shape according to attack, sustain and release times
         }
     }
